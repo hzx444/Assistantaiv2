@@ -1,0 +1,16 @@
+{
+  "name": "assistente-ia-telegram",
+  "version": "1.0.0",
+  "description": "Bot do Assistente de IA com acesso pago via Kirvano",
+  "main": "index.js",
+  "dependencies": {
+    "node-fetch": "^2.6.7",
+    "telegraf": "^4.7.0",
+    "sqlite3": "^5.0.2"
+  },
+  "scripts": {
+    "start": "node src/bot.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
