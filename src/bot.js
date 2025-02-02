@@ -20,24 +20,37 @@ function checkEmail(email, callback) {
   });
 }
 
+// Armazenar o estado do fluxo de cada usuário
+const userState = {};
+
 // Comando /iniciar
 bot.command('iniciar', (ctx) => {
-  ctx.reply('Para acessar o Assistente de IA, por favor, forneça o seu e-mail de compra.');
+  // Inicia o fluxo de coleta de e-mail
+  userState[ctx.from.id] = { step: 'waiting_for_email' };
+  ctx.reply('Olá! Para acessar o Assistente de IA, por favor, forneça o seu e-mail de compra.');
 });
 
 // Comando para verificar o e-mail e liberar o acesso
 bot.on('text', (ctx) => {
+  const userId = ctx.from.id;
   const userEmail = ctx.message.text.trim();
-  
-  // Verifica se o e-mail está registrado
-  checkEmail(userEmail, (exists) => {
-    if (exists) {
-      ctx.reply('Acesso liberado! Agora você pode conversar com o Assistente de IA.');
-      // Aqui você pode adicionar a lógica de integração com a OpenAI para começar a conversar
-    } else {
-      ctx.reply('E-mail não encontrado. Por favor, verifique se você já fez a compra.');
-    }
-  });
+
+  // Verifica se o usuário está no fluxo de espera de e-mail
+  if (userState[userId] && userState[userId].step === 'waiting_for_email') {
+    // Verifica se o e-mail está registrado
+    checkEmail(userEmail, (exists) => {
+      if (exists) {
+        ctx.reply('Acesso liberado! Agora você pode conversar com o Assistente de IA.');
+        userState[userId].step = 'access_granted'; // Alterando o estado para acesso liberado
+
+        // Aqui você pode adicionar a lógica de integração com a OpenAI para começar a conversar
+        // Por enquanto, enviaremos uma mensagem de boas-vindas para simular
+        ctx.reply('Seja bem-vindo ao Assistente de IA. Como posso ajudá-lo?');
+      } else {
+        ctx.reply('E-mail não encontrado. Por favor, verifique se você já fez a compra.');
+      }
+    });
+  }
 });
 
 // Conecta com a API da OpenAI (GPT-4) para gerar respostas
