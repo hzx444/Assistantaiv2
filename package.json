@@ -7,7 +7,6 @@
     "node-fetch": "^2.6.7",
     "telegraf": "^4.7.0",
     "sqlite3": "^5.0.2",
-    "express": "^4.17.1"  // <-- Aqui foi adicionado o express
   },
   "scripts": {
     "start": "node src/bot.js"
