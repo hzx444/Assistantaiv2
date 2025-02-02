@@ -114,8 +114,5 @@ bot.on('webhook', (ctx) => {
 // Configuração do Webhook para produção no Railway
 bot.telegram.setWebhook(process.env.WEBHOOK_URL);
 
-// Agora o bot irá responder a eventos de webhook, sem usar getUpdates
-bot.startWebhook('/webhook', null, process.env.PORT);
-
 // Inicia o bot
 console.log('Bot configurado para Webhook!');
