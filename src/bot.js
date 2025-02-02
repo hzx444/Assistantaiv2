@@ -8,6 +8,14 @@ const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 // Criação do banco de dados SQLite para armazenar os e-mails de usuários que pagaram
 const db = new sqlite3.Database('./user_emails.db');
 
+// Cria a tabela "users" caso ela não exista
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE
+  )`);
+});
+
 // Função para verificar o e-mail no banco de dados
 function checkEmail(email, callback) {
   db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
