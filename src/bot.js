@@ -1,7 +1,6 @@
 const { Telegraf } = require('telegraf');
 const fetch = require('node-fetch');
 const sqlite3 = require('sqlite3').verbose();
-require('dotenv').config();
 
 // Inicia o bot com o token do Telegram
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
