@@ -51,8 +51,7 @@ bot.on('text', (ctx) => {
         ctx.reply('Acesso liberado! Agora você pode conversar com o Assistente de IA.');
         userState[userId].step = 'access_granted'; // Alterando o estado para acesso liberado
 
-        // Aqui você pode adicionar a lógica de integração com a OpenAI para começar a conversar
-        // Por enquanto, enviaremos uma mensagem de boas-vindas para simular
+        // Envia uma mensagem de boas-vindas
         ctx.reply('Seja bem-vindo ao Assistente de IA. Como posso ajudá-lo?');
       } else {
         ctx.reply('E-mail não encontrado. Por favor, verifique se você já fez a compra.');
