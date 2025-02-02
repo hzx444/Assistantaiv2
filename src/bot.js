@@ -5,7 +5,7 @@ const sqlite3 = require('sqlite3').verbose();
 // Inicia o bot com o token do Telegram
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 
-// Criação do banco de dados SQLite para armazenar os e-mails de usuários que pagaram
+// Criação ou abertura do banco de dados SQLite para armazenar os e-mails de usuários que pagaram
 const db = new sqlite3.Database('./user_emails.db');
 
 // Cria a tabela "users" caso ela não exista
@@ -25,6 +25,29 @@ function checkEmail(email, callback) {
       return;
     }
     callback(row ? true : false);
+  });
+}
+
+// Função para armazenar o e-mail no banco de dados
+function storeEmail(email, callback) {
+  db.run('INSERT INTO users (email) VALUES (?)', [email], function(err) {
+    if (err) {
+      console.error('Erro ao armazenar o e-mail:', err);
+      callback(false);
+      return;
+    }
+    callback(true);
+  });
+}
+
+// Função para processar os logs de compra recebidos da Kirvano (armazenando os e-mails no banco)
+function processKivanoEvent(email) {
+  storeEmail(email, (success) => {
+    if (success) {
+      console.log(`E-mail ${email} armazenado com sucesso.`);
+    } else {
+      console.error(`Erro ao armazenar o e-mail ${email}.`);
+    }
   });
 }
 
@@ -51,7 +74,8 @@ bot.on('text', (ctx) => {
         ctx.reply('Acesso liberado! Agora você pode conversar com o Assistente de IA.');
         userState[userId].step = 'access_granted'; // Alterando o estado para acesso liberado
 
-        // Envia uma mensagem de boas-vindas
+        // Aqui você pode adicionar a lógica de integração com a OpenAI para começar a conversar
+        // Por enquanto, enviaremos uma mensagem de boas-vindas para simular
         ctx.reply('Seja bem-vindo ao Assistente de IA. Como posso ajudá-lo?');
       } else {
         ctx.reply('E-mail não encontrado. Por favor, verifique se você já fez a compra.');
@@ -73,10 +97,19 @@ async function getGpt4Response(userInput) {
       messages: [{ role: 'user', content: userInput }]
     })
   });
-  
+
   const data = await response.json();
   return data.choices[0].message.content;
 }
+
+// Configuração do webhook da Kirvano para processar eventos de compra e armazenar os e-mails
+bot.on('webhook', (ctx) => {
+  const event = ctx.update;
+  if (event && event.data && event.data.email) {
+    const email = event.data.email.trim();
+    processKivanoEvent(email);
+  }
+});
 
 // Inicia o bot
 bot.launch().then(() => {
