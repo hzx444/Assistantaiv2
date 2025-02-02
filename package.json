@@ -1,17 +1,20 @@
 {
-  "name": "assistente-ia-telegram",
+  "name": "assistant-ai",
   "version": "1.0.0",
-  "description": "Bot do Assistente de IA com acesso pago via Kirvano",
-  "main": "index.js",
-  "dependencies": {
-    "node-fetch": "^2.6.7",
-    "telegraf": "^4.7.0",
-    "sqlite3": "^5.0.2",
-    "express": "^4.17.1"
-  },
+  "description": "Bot do Telegram integrado com OpenAI",
+  "main": "bot.js",
   "scripts": {
-    "start": "node src/bot.js"
+    "start": "node bot.js"
   },
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "node-telegram-bot-api": "^0.57.0",
+    "openai": "^4.82.0",
+    "mercadopago": "^1.5.14",
+    "sqlite3": "^5.0.11"
+  },
+  "engines": {
+    "node": "16.x"
+  }
 }
