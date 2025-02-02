@@ -40,7 +40,7 @@ function storeEmail(email, callback) {
   });
 }
 
-// Função para processar os logs de compra recebidos da Kirvano
+// Função para processar os logs de compra recebidos da Kivano
 function processKivanoEvent(email) {
   storeEmail(email, (success) => {
     if (success) {
@@ -78,12 +78,15 @@ bot.on('text', (ctx) => {
   }
 });
 
-// Webhook para processar eventos da Kirvano
+// Webhook para processar eventos da Kivano
 bot.on('webhook', (ctx) => {
+  console.log('Webhook da Kivano recebido:', ctx.update); // Log para ver o evento da Kivano
   const event = ctx.update;
   if (event && event.data && event.data.email) {
     const email = event.data.email.trim();
     processKivanoEvent(email);
+  } else {
+    console.log('Dados de e-mail não encontrados no evento da Kivano');
   }
 });
 
