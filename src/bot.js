@@ -1,31 +1,13 @@
-const { Telegraf } = require('telegraf');
-const fetch = require('node-fetch');
+const express = require('express');
+const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
+const app = express();
 
-// Inicia o bot com o token do Telegram
-const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
-
-// Criação do banco de dados SQLite para armazenar os e-mails de usuários que pagaram
+// Configuração do banco de dados SQLite
 const db = new sqlite3.Database('./user_emails.db');
 
-// Função para criar a tabela de usuários (caso não exista)
-function createTable() {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL
-    );
-  `, (err) => {
-    if (err) {
-      console.error('Erro ao criar a tabela:', err);
-    } else {
-      console.log('Tabela de usuários criada (ou já existente).');
-    }
-  });
-}
-
-// Chama a função para criar a tabela ao iniciar o bot
-createTable();
+// Usando body-parser para processar os dados do webhook
+app.use(bodyParser.json());
 
 // Função para adicionar um e-mail de usuário ao banco de dados
 function addUserEmail(email) {
@@ -38,57 +20,31 @@ function addUserEmail(email) {
   });
 }
 
-// Função para verificar o e-mail no banco de dados
-function checkEmail(email, callback) {
-  db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
-    if (err) {
-      console.error('Erro ao verificar o e-mail:', err);
-      callback(false);
-      return;
-    }
-    callback(row ? true : false);
-  });
-}
+// Endpoint para o webhook
+app.post('/webhook', (req, res) => {
+  // Logs para visualizar a requisição
+  console.log('Evento recebido:', req.body);
+  
+  const { event, customer } = req.body;
 
-// Comando /iniciar
-bot.command('iniciar', (ctx) => {
-  ctx.reply('Para acessar o Assistente de IA, por favor, forneça o seu e-mail de compra.');
+  // Verifica se o evento é de venda aprovada
+  if (event === 'SALE_APPROVED') {
+    // Pega o e-mail do cliente
+    const email = customer.email;
+    console.log('Compra aprovada para o e-mail:', email);
+    
+    // Adiciona o e-mail ao banco de dados
+    addUserEmail(email);
+
+    // Responde que o evento foi processado corretamente
+    res.status(200).send('Evento de compra aprovado recebido');
+  } else {
+    console.log('Evento não reconhecido:', event);
+    res.status(400).send('Evento não reconhecido');
+  }
 });
 
-// Comando para verificar o e-mail e liberar o acesso
-bot.on('text', (ctx) => {
-  const userEmail = ctx.message.text.trim();
-  
-  // Verifica se o e-mail está registrado
-  checkEmail(userEmail, (exists) => {
-    if (exists) {
-      ctx.reply('Acesso liberado! Agora você pode conversar com o Assistente de IA.');
-      // Aqui você pode adicionar a lógica de integração com a OpenAI para começar a conversar
-    } else {
-      ctx.reply('E-mail não encontrado. Por favor, verifique se você já fez a compra.');
-    }
-  });
-});
-
-// Conecta com a API da OpenAI (GPT-4) para gerar respostas
-async function getGpt4Response(userInput) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: userInput }]
-    })
-  });
-  
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
-
-// Inicia o bot
-bot.launch().then(() => {
-  console.log('Bot está funcionando!');
+// Inicializa o servidor
+app.listen(3000, () => {
+  console.log('Servidor webhook rodando na porta 3000');
 });
